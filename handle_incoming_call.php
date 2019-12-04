@@ -47,4 +47,3 @@
 <Response>
     <Dial method="POST" record="false"><?php echo $agent_number; ?></Dial>
 </Response>
-

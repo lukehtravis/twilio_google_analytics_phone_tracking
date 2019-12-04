@@ -5,16 +5,16 @@
    *
    * POST parameters accepted:
    *  Twilio request params
-   *  scs_test      - if set, then run in test mode: send email to webmaster
+   *  your_test      - if set, then run in test mode: send email to webmaster
    *                      and use Google Analytics mock script
    */
 
   require_once './include/config.php';
-  require_once './include/ScsGoogleAnalytics.php';
-  require_once './include/ScsDrupalNodeAndTaxonomy.php';
+  require_once './include/youranalyticshandler.php';
+  require_once './include/yourdrupalnodeandtaxonomyclass.php';
 
-  // DB object constructor found in include/ScsPhoneTrackingDatabase.php
-  $db_object = new ScsPhoneTrackingDatabase();
+  // DB object constructor found in include/PhoneTrackingDatabase.php
+  $db_object = new PhoneTrackingDatabase();
 
   // twilio request params are returned into variable $request_params_from_twilio
   $request_params_from_twilio = $db_object->get_number_info();
@@ -28,7 +28,7 @@
 
     // Also retrieve the call duration.
     $call_duration = filter_input(INPUT_POST,
-                                  'CallDuration',
+                                  'your_call_duration',
                                   FILTER_VALIDATE_REGEXP,
                                   array(
                                     'options' => array(
@@ -44,15 +44,15 @@
     $number_array = $db_object->select_from_node_contact($twilio_tracking_number);
 
     // nid and tid are extracted from array
-    $nid = $number_array['nid'];
-    $tid = $number_array['tid'];
+    $nid = $number_array['yournodeid'];
+    $tid = $number_array['yourtaxonomyid'];
 
-    // Call SCSDrupalNode And Taxonomy Class
-    $drupal_object = new ScsDrupalNodeAndTaxonomy();
+    // Call DrupalNode And Taxonomy Class
+    $drupal_object = new DrupalNodeAndTaxonomy();
 
     // Check for test mode.
-    $scs_test_mode = filter_input(INPUT_POST,
-                                  'scs_test_mode',
+    $your_test_mode = filter_input(INPUT_POST,
+                                  'your_test_mode',
                                   FILTER_VALIDATE_INT);
 
     // Put salesperson info into array and break into variables
@@ -60,8 +60,8 @@
     $salesperson_full_name = $salesperson_array['full_name'];
     $salesperson_email_address = $salesperson_array['email_address'];
 
-    if (!empty($scs_test_mode)) {
-      $salesperson_email_address = 'webmaster@scsglobalservices.com';
+    if (!empty($your_test_mode)) {
+      $salesperson_email_address = 'webmaster@yourorg.com';
     }
 
     // Put node path into a variable to be used to send to GA
@@ -74,27 +74,27 @@
     $event_value = intval($call_duration); //Goes with ev url param. This allows us to specify a value for the actual event when we decide on one. Must be an integer
 
     // Load class for Google Analytics.
-    $ga = new ScsGoogleAnalytics();
+    $ga = new GoogleAnalytics();
 
     //if ($db_object->caller_has_called_before($twilio_from_number) == false && $db_object->twilio_authentication($request_params_from_twilio, $AuthToken) == true ) {
       // Send event tracking request to GA.
       $ga->generate_analytics_event('phone',
-                                    'www.scsglobalservices.com',
+                                    'www.yourorg.com',
                                     '/' . $path_of_node,
                                     $event_category,
                                     $event_action,
                                     $event_label,
                                     $event_value,
-                                    $scs_test_mode);
+                                    $test_mode);
     //}
 
     // Send an email notification to the salesperson.
-    $subject = 'SCS Website Tracked Call Receipt';
+    $subject = 'Your Org Website Tracked Call Receipt';
     $message = <<<___MAIL
-The call you just received was from a tracked number listed on the SCS website.
+The call you just received was from a tracked number listed on the yourorg website.
 
 Page:
-http://www.scsglobalservices.com/{$path_of_node}
+http://www.yourorg.com/{$path_of_node}
 
 The number of the caller was {$twilio_from_number}
 ___MAIL;
@@ -102,9 +102,9 @@ ___MAIL;
     $timenow = new DateTime();
     $timenow->setTimezone(new DateTimeZone('America/Los_Angeles'));
     $message = wordwrap($message, 72, "\n");
-    $reply_to = 'webmaster@scscertified.com';
+    $reply_to = 'webmaster@yourorg.com';
     $headers = 'Date: ' . $timenow->format('d M Y H:i:s O') . "\r\n"
-             . 'From: donotreply@scscertified.com' . "\r\n"
+             . 'From: donotreply@yourorg.com' . "\r\n"
              . 'Reply-To: ' . $reply_to . "\r\n"
              . 'Content-type: text/plain; charset=UTF-8' . "\r\n"
              . 'X-Mailer: PHP/' . phpversion();

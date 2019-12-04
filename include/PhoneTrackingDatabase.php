@@ -12,29 +12,29 @@ Class PhoneTrackingDatabase {
   // method gets twilio request parameters and returns them in an array
   function get_number_info() {
 
-    $CallSid = $_POST['CallSid'];
-    $AccountSid=$_POST['AccountSid'];
-    $CallFrom=$_POST['From'];
-    $CallTo=$_POST['To'];
-    $CallStatus=$_POST['CallStatus'];
-    $ApiVersion=$_POST['ApiVersion'];
-    $Direction=$_POST['Direction'];
+    $CallSid = $_POST['fieldname'];
+    $AccountSid=$_POST['fieldname'];
+    $CallFrom=$_POST['fieldname'];
+    $CallTo=$_POST['fieldname'];
+    $CallStatus=$_POST['fieldname'];
+    $ApiVersion=$_POST['fieldname'];
+    $Direction=$_POST['fieldname'];
 
-    if (isset($_POST['FromCity'])) {
-      $FromCity=$_POST['FromCity'];
-      $FromState=$_POST['FromState'];
-      $FromZip=$_POST['FromZip'];
-      $FromCountry=$_POST['FromCountry'];
+    if (isset($_POST['fieldname'])) {
+      $FromCity=$_POST['fieldname'];
+      $FromState=$_POST['fieldname'];
+      $FromZip=$_POST['fieldname'];
+      $FromCountry=$_POST['fieldname'];
     } else {
       $FromCity="";
       $FromState="";
       $FromZip="";
       $FromCountry="";
     }
-    $ToCity=$_POST['ToCity'];
-    $ToState=$_POST['ToState'];
-    $ToZip=$_POST['ToZip'];
-    $ToCountry=$_POST['ToCountry'];
+    $ToCity=$_POST['fieldname'];
+    $ToState=$_POST['fieldname'];
+    $ToZip=$_POST['fieldname'];
+    $ToCountry=$_POST['fieldname'];
 
     $vars = array($CallSid,$AccountSid,$CallFrom,$CallTo,$CallStatus,$ApiVersion,$Direction,$FromCity,$FromState,$FromZip,$FromCountry,$ToCity,$ToState,$ToZip,$ToCountry);
     return $vars;
@@ -43,7 +43,7 @@ Class PhoneTrackingDatabase {
   // method takes as input twilio tracking number, return as output row array corresponding to that number in node_contact database
   function select_from_node_contact($twilio_tracking_number) {
     $row = NULL;
-    $query = "SELECT nid, tid, direct_number FROM node_contact WHERE tracking_number = ?";
+    $query = "SELECT yournodeidfield, yourtwilioidfield, yourphone_number FROM your_contact_table WHERE your_tracking_number = ?";
     $stmt = $this->db->prepare($query);
     if ($stmt !== FALSE) {
       $result = $stmt->bindParam(1, $twilio_tracking_number);
@@ -102,7 +102,7 @@ Class PhoneTrackingDatabase {
    * Update call record with call duration
    */
   function update_call_log() {
-    $CallSid = filter_input(INPUT_POST, 'CallSid', FILTER_VALIDATE_REGEXP,
+    $CallSid = filter_input(INPUT_POST, 'fieldname', FILTER_VALIDATE_REGEXP,
                               array(
                                 'options' => array(
                                   'regexp' => '/^[A-Za-z0-9]{4,}$/',
@@ -127,8 +127,8 @@ Class PhoneTrackingDatabase {
                 CallSid = :CallSid';
       try {
         $stmt = $this->db->prepare($sql);
-        $stmt->bindParam(':CallSid', $CallSid, PDO::PARAM_STR);
-        $stmt->bindParam(':CallDuration', $CallDuration, PDO::PARAM_INT);
+        $stmt->bindParam(':fieldname', $CallSid, PDO::PARAM_STR);
+        $stmt->bindParam(':fieldname', $CallDuration, PDO::PARAM_INT);
         $stmt->execute();
       }
       catch (Exception $e) {
@@ -138,10 +138,10 @@ Class PhoneTrackingDatabase {
     }
     else {
       if (empty($CallSid)) {
-        $err_descr_str = 'CallSid=' . $_POST['CallSid'];
+        $err_descr_str = 'fieldname=' . $_POST['fieldname'];
       }
       else {
-        $err_descr_str = 'CallDuration=' . $_POST['CallDuration'];
+        $err_descr_str = 'fieldname=' . $_POST['fieldname'];
       }
       error_log(__FILE__ . ': ' . __METHOD__ . ': ' . __LINE__ .
                 ': Invalid parameter: ' . $err_descr_str);
@@ -165,7 +165,7 @@ Class PhoneTrackingDatabase {
                 CallSid = :CallSid';
       $stmt = $this->db->prepare($sql);
       if ($stmt) {
-        $stmt->bindParam(':CallSid', $call_sid, PDO::PARAM_STR);
+        $stmt->bindParam(':fieldname', $call_sid, PDO::PARAM_STR);
         if ($stmt->execute()) {
           $row = $stmt->fetch(PDO::FETCH_ASSOC);
           if ($row !== FALSE) {
@@ -216,7 +216,7 @@ Class PhoneTrackingDatabase {
                     CallFrom = :from_number';
     try {
       $from_stmt = $this->db->prepare($from_query);
-      $from_stmt->bindParam(':from_number', $from_number, PDO::PARAM_STR);
+      $from_stmt->bindParam(':fieldname', $from_number, PDO::PARAM_STR);
       $from_stmt->execute();
       $row = $from_stmt->fetch(PDO::FETCH_ASSOC);
     }
@@ -225,7 +225,7 @@ Class PhoneTrackingDatabase {
         $e->getMessage());
     }
 
-    if (($row === FALSE) || empty($duration = $row['CallDuration'])) {
+    if (($row === FALSE) || empty($duration = $row['fieldname'])) {
       return FALSE;
     }
     else {
